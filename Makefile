@@ -1,4 +1,4 @@
-.PHONY: build run stop clear
+.PHONY: build run start stop clear
 
 IMAGE_NAME := hcs-exporter
 CONTAINER_NAME := hcs-exporter-container
@@ -17,3 +17,9 @@ stop:
 
 clear:
 	@docker rmi $(IMAGE_NAME)
+
+start:
+	@nohup python hcs_exporter.py > hcs_exporter.log 2>&1 &
+
+kill:
+	@pkill -f hcs_exporter.py

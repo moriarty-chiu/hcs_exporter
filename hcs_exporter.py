@@ -1,12 +1,23 @@
 import time
 import logging
 import sys
-import atexit
-from prometheus_client import start_http_server, REGISTRY
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from prometheus_client import REGISTRY, generate_latest
 from clients.obs import OBSClient
 from collectors.obs import OBSCollector
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+class MetricsHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/metrics':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(generate_latest(REGISTRY))
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 def main():
     """Main function to start the exporter."""
@@ -20,13 +31,11 @@ def main():
 
     obs_collector = OBSCollector(obs_client)
     REGISTRY.register(obs_collector)
-    atexit.register(lambda: REGISTRY.unregister(obs_collector))
 
-    start_http_server(8000)
-    logging.info("Exporter started on port 8000")
-
-    while True:
-        time.sleep(60)
+    server_address = ('', 8100)
+    httpd = HTTPServer(server_address, MetricsHandler)
+    logging.info(f"Exporter started on port {server_address[1]}")
+    httpd.serve_forever()
 
 if __name__ == '__main__':
     main()
