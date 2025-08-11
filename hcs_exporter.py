@@ -2,7 +2,7 @@ import time
 import logging
 import sys
 import atexit
-from prometheus_client import start_http_server, REGISTRY
+from prometheus_client import start_http_server
 from clients.obs import OBSClient
 from collectors.obs import OBSCollector
 
@@ -19,8 +19,8 @@ def main():
         sys.exit(1)
 
     obs_collector = OBSCollector(obs_client)
-    REGISTRY.register(obs_collector)
-    atexit.register(lambda: REGISTRY.unregister(obs_collector))
+    obs_collector.register()
+    atexit.register(obs_collector.unregister)
 
     start_http_server(8000)
     logging.info("Exporter started on port 8000")

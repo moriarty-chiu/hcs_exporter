@@ -20,7 +20,7 @@ class OBSCollector(BaseCollector):
                 location = bucket.location
                 owner_name = resp.body.owner.owner_name
 
-                storage_info_resp = self.client.getBucketStorageInfo(bucket_name)
+                storage__info_resp = self.client.getBucketStorageInfo(bucket_name)
                 quota_resp = self.client.getBucketQuota(bucket_name)
 
                 if storage_info_resp.status < 300 and quota_resp.status < 300:
@@ -55,3 +55,8 @@ class OBSCollector(BaseCollector):
         yield from self.hcs_obs_size.collect()
         yield from self.hcs_obs_quota.collect()
         yield from self.hcs_obs_object_count.collect()
+
+    def unregister(self):
+        REGISTRY.unregister(self.hcs_obs_size)
+        REGISTRY.unregister(self.hcs_obs_quota)
+        REGISTRY.unregister(self.hcs_obs_object_count)
