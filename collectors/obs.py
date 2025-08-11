@@ -12,10 +12,6 @@ class OBSCollector(BaseCollector):
         self.hcs_obs_object_count = Gauge('hcs_obs_object_count', 'OBS bucket object count', ['bucket_name', 'bucket_owner', 'location'])
 
     def collect(self):
-        REGISTRY.register(self.hcs_obs_size)
-        REGISTRY.register(self.hcs_obs_quota)
-        REGISTRY.register(self.hcs_obs_object_count)
-
         logger.info("Collecting OBS metrics...")
         resp = self.client.listBuckets(True)
         if resp.status < 300:
@@ -59,7 +55,3 @@ class OBSCollector(BaseCollector):
         yield from self.hcs_obs_size.collect()
         yield from self.hcs_obs_quota.collect()
         yield from self.hcs_obs_object_count.collect()
-
-        REGISTRY.unregister(self.hcs_obs_size)
-        REGISTRY.unregister(self.hcs_obs_quota)
-        REGISTRY.unregister(self.hcs_obs_object_count)

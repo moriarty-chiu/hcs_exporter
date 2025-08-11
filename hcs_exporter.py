@@ -1,6 +1,8 @@
 import time
 import logging
-from prometheus_client import start_http_server
+import sys
+import atexit
+from prometheus_client import start_http_server, REGISTRY
 from clients.obs import OBSClient
 from collectors.obs import OBSCollector
 
@@ -10,9 +12,15 @@ def main():
     """Main function to start the exporter."""
     logging.info("Starting HCS exporter...")
     
-    obs_client = OBSClient().get_client()
+    try:
+        obs_client = OBSClient().get_client()
+    except ValueError as e:
+        logging.error(f"Failed to create OBS client: {e}")
+        sys.exit(1)
+
     obs_collector = OBSCollector(obs_client)
-    obs_collector.register()
+    REGISTRY.register(obs_collector)
+    atexit.register(lambda: REGISTRY.unregister(obs_collector))
 
     start_http_server(8000)
     logging.info("Exporter started on port 8000")

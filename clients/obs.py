@@ -9,6 +9,17 @@ class OBSClient(BaseClient):
     def __init__(self):
         super().__init__()
 
+    import os
+import logging
+from obs import ObsClient
+from .base import BaseClient
+
+logger = logging.getLogger(__name__)
+
+class OBSClient(BaseClient):
+    def __init__(self):
+        super().__init__()
+
     def get_client(self):
         ak = os.getenv("AccessKeyID")
         sk = os.getenv("SecretAccessKey")
