@@ -7,8 +7,9 @@ logger = logging.getLogger(__name__)
 class OBSCollector(BaseCollector):
     def __init__(self, client):
         super().__init__(client)
-        self.obs_info = Gauge('hcs_obs_info', 'OBS bucket information', ['bucket_name', 'location', 'owner_id', 'owner_name', 'bucket_size', 'object_count', 'quota'])
-        REGISTRY.unregister(self.obs_info)
+        self.hcs_obs_size = Gauge('hcs_obs_size', 'OBS bucket size', ['bucket_name', 'bucket_owner', 'location'])
+        self.hcs_obs_quota = Gauge('hcs_obs_quota', 'OBS bucket quota', ['bucket_name', 'bucket_owner', 'location'])
+        self.hcs_obs_object_count = Gauge('hcs_obs_object_count', 'OBS bucket object count', ['bucket_name', 'bucket_owner', 'location'])
 
     def collect(self):
         logger.info("Collecting OBS metrics...")
@@ -17,7 +18,6 @@ class OBSCollector(BaseCollector):
             for bucket in resp.body.buckets:
                 bucket_name = bucket.name
                 location = bucket.location
-                owner_id = resp.body.owner.owner_id
                 owner_name = resp.body.owner.owner_name
 
                 storage_info_resp = self.client.getBucketStorageInfo(bucket_name)
@@ -28,15 +28,21 @@ class OBSCollector(BaseCollector):
                     object_count = storage_info_resp.body.objectNumber
                     quota = quota_resp.body.quota
 
-                    self.obs_info.labels(
-                        bucket_name=bucket_name, 
-                        location=location, 
-                        owner_id=owner_id, 
-                        owner_name=owner_name, 
-                        bucket_size=bucket_size, 
-                        object_count=object_count, 
-                        quota=quota
-                    ).set(1)
+                    self.hcs_obs_size.labels(
+                        bucket_name=bucket_name,
+                        bucket_owner=owner_name,
+                        location=location
+                    ).set(bucket_size)
+                    self.hcs_obs_quota.labels(
+                        bucket_name=bucket_name,
+                        bucket_owner=owner_name,
+                        location=location
+                    ).set(quota)
+                    self.hcs_obs_object_count.labels(
+                        bucket_name=bucket_name,
+                        bucket_owner=owner_name,
+                        location=location
+                    ).set(object_count)
                     logger.info(f"Successfully collected metrics for bucket: {bucket_name}")
                 else:
                     if storage_info_resp.status >= 300:
@@ -46,5 +52,6 @@ class OBSCollector(BaseCollector):
         else:
             logger.error(f"Failed to list buckets: {resp.errorCode}: {resp.errorMessage}")
 
-        for metric in self.obs_info.collect():
-            yield metric
+        yield from self.hcs_obs_size.collect()
+        yield from self.hcs_obs_quota.collect()
+        yield from self.hcs_obs_object_count.collect()
