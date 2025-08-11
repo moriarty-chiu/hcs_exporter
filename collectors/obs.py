@@ -1,5 +1,5 @@
 import logging
-from prometheus_client import Gauge
+from prometheus_client import Gauge, REGISTRY
 from .base import BaseCollector
 
 logger = logging.getLogger(__name__)
@@ -8,6 +8,7 @@ class OBSCollector(BaseCollector):
     def __init__(self, client):
         super().__init__(client)
         self.obs_info = Gauge('hcs_obs_info', 'OBS bucket information', ['bucket_name', 'location', 'owner_id', 'owner_name', 'bucket_size', 'object_count', 'quota'])
+        REGISTRY.unregister(self.obs_info)
 
     def collect(self):
         logger.info("Collecting OBS metrics...")
@@ -44,3 +45,6 @@ class OBSCollector(BaseCollector):
                         logger.error(f"Failed to get quota for bucket {bucket_name}: {quota_resp.errorCode}: {quota_resp.errorMessage}")
         else:
             logger.error(f"Failed to list buckets: {resp.errorCode}: {resp.errorMessage}")
+
+        for metric in self.obs_info.collect():
+            yield metric
