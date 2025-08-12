@@ -1,0 +1,14 @@
+
+exporter:
+  port: 8100
+  health_check_path: /healthz
+
+pushgateway:
+  address: "localhost:9091"
+  job_name: "hcs-exporter"
+  push_interval: 60
+
+collectors:
+  obs:
+    enabled: true
+    rate_limit_sleep: 10

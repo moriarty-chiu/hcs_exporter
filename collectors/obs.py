@@ -1,12 +1,14 @@
 import logging
+import time
 from prometheus_client import Gauge
 from .base import BaseCollector
 
 logger = logging.getLogger(__name__)
 
 class OBSCollector(BaseCollector):
-    def __init__(self, client):
+    def __init__(self, client, rate_limit_sleep=10):
         super().__init__(client)
+        self.rate_limit_sleep = rate_limit_sleep
         self.hcs_obs_size = Gauge('hcs_obs_size', 'OBS bucket size', ['bucket_name', 'bucket_owner', 'location'], registry=None)
         self.hcs_obs_quota = Gauge('hcs_obs_quota', 'OBS bucket quota', ['bucket_name', 'bucket_owner', 'location'], registry=None)
         self.hcs_obs_object_count = Gauge('hcs_obs_object_count', 'OBS bucket object count', ['bucket_name', 'bucket_owner', 'location'], registry=None)
@@ -49,6 +51,8 @@ class OBSCollector(BaseCollector):
                         logger.error(f"Failed to get storage info for bucket {bucket_name}: {storage_info_resp.errorCode}: {storage_info_resp.errorMessage}")
                     if quota_resp.status >= 300:
                         logger.error(f"Failed to get quota for bucket {bucket_name}: {quota_resp.errorCode}: {quota_resp.errorMessage}")
+                
+                time.sleep(self.rate_limit_sleep)
         else:
             logger.error(f"Failed to list buckets: {resp.errorCode}: {resp.errorMessage}")
 
