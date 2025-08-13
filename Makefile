@@ -7,12 +7,11 @@ build:
 	@docker build -t $(IMAGE_NAME) .
 
 run:
-	run: 
-		@docker run -d --name $(CONTAINER_NAME) -p 8100:8100 \
-		-v $(pwd)/conf:/app/conf \
-		-e AccessKeyID=$(AccessKeyID) \
-		-e SecretAccessKey=$(SecretAccessKey) \
-		$(IMAGE_NAME)
+	@docker run -d --name $(CONTAINER_NAME) \
+	-v $(shell pwd)/conf:/app/conf \
+	-e AccessKeyID=$(AccessKeyID) \
+	-e SecretAccessKey=$(SecretAccessKey) \
+	$(IMAGE_NAME)
 
 stop:
 	@docker stop $(CONTAINER_NAME) && docker rm $(CONTAINER_NAME)
@@ -21,7 +20,13 @@ clear:
 	@docker rmi $(IMAGE_NAME)
 
 start:
-	@nohup python hcs_exporter.py > hcs_exporter.log 2>&1 &
+	@nohup python obs_exporter.py > obs_exporter.log 2>&1 &
 
 kill:
-	@pkill -f hcs_exporter.py
+	@pkill -f obs_exporter.py
+
+log:
+	@tail -f obs_exporter.log
+
+clean:
+	@rm -f obs_exporter.log

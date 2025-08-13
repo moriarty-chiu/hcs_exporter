@@ -10,6 +10,4 @@ ENV AccessKeyID=""
 ENV SecretAccessKey=""
 ENV OBS_SERVER="https://obs.cn-north-4.myhuaweicloud.com"
 
-EXPOSE 8100
-
-CMD ["python", "hcs_exporter.py"]
+CMD ["python", "obs_exporter.py"]
