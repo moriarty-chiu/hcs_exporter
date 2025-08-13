@@ -8,13 +8,13 @@ from obs import ObsClient
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def load_config(path='conf/config.yml'):
+def load_config(path):
     """Load configuration from a YAML file."""
     with open(path, 'r') as f:
         return yaml.safe_load(f)
 
 def get_obs_client():
-    """Create and return an OBS client."""
+    """Create and return an OBS client using credentials from environment variables."""
     ak = os.getenv("AccessKeyID")
     sk = os.getenv("SecretAccessKey")
     server = os.getenv("OBS_SERVER", "https://obs.cn-north-4.myhuaweicloud.com")
@@ -46,19 +46,13 @@ def collect_obs_metrics(client, registry, rate_limit_sleep=10):
                 quota = quota_resp.body.quota
 
                 hcs_obs_size.labels(
-                    bucket_name=bucket_name,
-                    bucket_owner=owner_name,
-                    location=location
+                    bucket_name=bucket_name, bucket_owner=owner_name, location=location
                 ).set(bucket_size)
                 hcs_obs_quota.labels(
-                    bucket_name=bucket_name,
-                    bucket_owner=owner_name,
-                    location=location
+                    bucket_name=bucket_name, bucket_owner=owner_name, location=location
                 ).set(quota)
                 hcs_obs_object_count.labels(
-                    bucket_name=bucket_name,
-                    bucket_owner=owner_name,
-                    location=location
+                    bucket_name=bucket_name, bucket_owner=owner_name, location=location
                 ).set(object_count)
                 logger.info(f"Successfully collected metrics for bucket: {bucket_name}")
             else:
@@ -72,10 +66,14 @@ def collect_obs_metrics(client, registry, rate_limit_sleep=10):
         logger.error(f"Failed to list buckets: {resp.errorCode}: {resp.errorMessage}")
 
 def main():
-    """Main function to collect and push metrics."""
+    """Main function to collect and push metrics.
+
+    This script collects OBS metrics and pushes them to a Prometheus Pushgateway.
+    """
     logging.info("Starting OBS metrics collection script...")
 
-    config = load_config('conf/config.yml')
+    config_path = os.getenv('CONFIG_FILE_PATH', 'conf/config.yml')
+    config = load_config(config_path)
     pushgateway_address = config['pushgateway']['address']
     job_name = config['pushgateway']['job_name']
     rate_limit_sleep = config['collectors']['obs'].get('rate_limit_sleep', 10)

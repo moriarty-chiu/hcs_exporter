@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                - name: AccessKeyID
+                  value: {{ .Values.env.AccessKeyID | quote }}
+                - name: SecretAccessKey
+                  value: {{ .Values.env.SecretAccessKey | quote }}
+                - name: OBS_SERVER
+                  value: {{ .Values.env.OBS_SERVER | quote }}
+              volumeMounts:
+                - name: config
+                  mountPath: /app/conf
+          volumes:
+            - name: config
+              configMap:
+                name: {{ .Release.Name }}-config
+          restartPolicy: OnFailure

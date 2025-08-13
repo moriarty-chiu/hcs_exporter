@@ -1,0 +1,21 @@
+image:
+  repository: hcs-exporter
+  tag: latest
+  pullPolicy: IfNotPresent
+
+cronjob:
+  schedule: "*/5 * * * *"
+
+config: |
+  pushgateway:
+    address: "localhost:9091"
+    job_name: "hcs-exporter"
+
+  collectors:
+    obs:
+      rate_limit_sleep: 10
+
+env:
+  AccessKeyID: ""
+  SecretAccessKey: ""
+  OBS_SERVER: "https://obs.cn-north-4.myhuaweicloud.com"
