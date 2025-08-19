@@ -14,8 +14,14 @@ config: |
   collectors:
     obs:
       rate_limit_sleep: 10
+    dcs: {}
 
 env:
   AccessKeyID: ""
   SecretAccessKey: ""
   OBS_SERVER: "https://obs.cn-north-4.myhuaweicloud.com"
+  IAM_ENDPOINT: ""
+  OC_ENDPOINT: ""
+  DOMAIN_NAME: ""
+  USERNAME: ""
+  PASSWORD: ""

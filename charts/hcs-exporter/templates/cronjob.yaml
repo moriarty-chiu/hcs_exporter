@@ -22,6 +22,16 @@ spec:
                   value: {{ .Values.env.SecretAccessKey | quote }}
                 - name: OBS_SERVER
                   value: {{ .Values.env.OBS_SERVER | quote }}
+                - name: IAM_ENDPOINT
+                  value: {{ .Values.env.IAM_ENDPOINT | quote }}
+                - name: OC_ENDPOINT
+                  value: {{ .Values.env.OC_ENDPOINT | quote }}
+                - name: DOMAIN_NAME
+                  value: {{ .Values.env.DOMAIN_NAME | quote }}
+                - name: USERNAME
+                  value: {{ .Values.env.USERNAME | quote }}
+                - name: PASSWORD
+                  value: {{ .Values.env.PASSWORD | quote }}
               volumeMounts:
                 - name: config
                   mountPath: /app/conf

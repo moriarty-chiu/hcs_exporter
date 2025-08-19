@@ -9,4 +9,5 @@ dependencies = [
     "prometheus_client",
     "huaweicloudsdkobs",
     "PyYAML",
+    "requests",
 ]

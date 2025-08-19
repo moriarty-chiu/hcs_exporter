@@ -7,6 +7,7 @@ This is a Prometheus exporter for Huawei Cloud services. It collects metrics fro
 Currently, the exporter supports the following services:
 
 *   Object Storage Service (OBS)
+*   Distributed Cache Service (DCS)
 
 ## Architecture
 
@@ -48,7 +49,8 @@ collectors:
 
 *   Docker
 *   A running Prometheus Pushgateway instance.
-*   Huawei Cloud Access Key ID and Secret Access Key.
+*   For OBS: Huawei Cloud Access Key ID and Secret Access Key.
+*   For DCS: Huawei Cloud domain name, username, password, IAM endpoint, and OC endpoint.
 
 ### Build and Run
 
@@ -69,14 +71,27 @@ collectors:
     docker build -t hcs-exporter .
     ```
 
-4.  **Run the exporter:**
+4.  **Run the OBS exporter:**
 
     ```bash
-    docker run -d --name hcs-exporter \
+    docker run -d --name hcs-obs-exporter \
       -v $(pwd)/conf:/app/conf \
       -e AccessKeyID=<YOUR_ACCESS_KEY_ID> \
       -e SecretAccessKey=<YOUR_SECRET_ACCESS_KEY> \
       hcs-exporter
+    ```
+
+5.  **Run the DCS exporter:**
+
+    ```bash
+    docker run -d --name hcs-dcs-exporter \
+      -v $(pwd)/conf:/app/conf \
+      -e DOMAIN_NAME=<YOUR_DOMAIN_NAME> \
+      -e USERNAME=<YOUR_USERNAME> \
+      -e PASSWORD=<YOUR_PASSWORD> \
+      -e IAM_ENDPOINT=<IAM_ENDPOINT> \
+      -e OC_ENDPOINT=<OC_ENDPOINT> \
+      hcs-exporter python entrypoint.py dcs
     ```
 
 ## Health Check
@@ -90,3 +105,7 @@ The exporter provides a health check endpoint at `http://localhost:8100/healthz`
 *   `hcs_obs_size{bucket_name, bucket_owner, location}`: OBS bucket size in bytes.
 *   `hcs_obs_quota{bucket_name, bucket_owner, location}`: OBS bucket quota in bytes.
 *   `hcs_obs_object_count{bucket_name, bucket_owner, location}`: Number of objects in an OBS bucket.
+
+### DCS
+
+*   `hcs_dcs_info{uuid, name}`: DCS instance information with count1 metric.

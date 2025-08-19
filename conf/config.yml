@@ -6,3 +6,4 @@ pushgateway:
 collectors:
   obs:
     rate_limit_sleep: 10
+  dcs: {}
