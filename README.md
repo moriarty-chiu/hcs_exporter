@@ -94,6 +94,60 @@ collectors:
       hcs-exporter python entrypoint.py dcs
     ```
 
+### Deploy to Kubernetes with Secrets
+
+To deploy the exporter to Kubernetes securely, use Kubernetes Secrets to store sensitive information:
+
+1.  **Create a Kubernetes Secret:**
+
+    Create a file named `secrets.yaml` with your sensitive information:
+    
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: hcs-exporter-secret
+    type: Opaque
+    data:
+      AccessKeyID: <base64-encoded-access-key-id>
+      SecretAccessKey: <base64-encoded-secret-access-key>
+      USERNAME: <base64-encoded-username>
+      PASSWORD: <base64-encoded-password>
+    ```
+    
+    You can encode your values with:
+    ```bash
+    echo -n "your-value" | base64
+    ```
+
+2.  **Deploy the Secret:**
+
+    ```bash
+    kubectl apply -f secrets.yaml
+    ```
+
+3.  **Deploy the exporter using Helm:**
+
+    ```bash
+    helm install hcs-exporter ./charts/hcs-exporter \
+      --set secret.AccessKeyID="your-access-key-id" \
+      --set secret.SecretAccessKey="your-secret-access-key" \
+      --set secret.USERNAME="your-username" \
+      --set secret.PASSWORD="your-password" \
+      --set env.IAM_ENDPOINT="your-iam-endpoint" \
+      --set env.OC_ENDPOINT="your-oc-endpoint" \
+      --set env.DOMAIN_NAME="your-domain-name"
+    ```
+
+    By default, both OBS and DCS cronjobs will be deployed. You can disable specific cronjobs by setting:
+    ```bash
+    # Disable DCS cronjob
+    --set cronjobs.dcs.enabled=false
+    
+    # Disable OBS cronjob
+    --set cronjobs.obs.enabled=false
+    ```
+
 ## Health Check
 
 The exporter provides a health check endpoint at `http://localhost:8100/healthz` by default. You can use this to monitor the status of the exporter.

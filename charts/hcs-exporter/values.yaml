@@ -3,8 +3,13 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-cronjob:
-  schedule: "*/5 * * * *"
+cronjobs:
+  obs:
+    enabled: true
+    schedule: "*/5 * * * *"
+  dcs:
+    enabled: true
+    schedule: "*/10 * * * *"
 
 config: |
   pushgateway:
@@ -17,11 +22,15 @@ config: |
     dcs: {}
 
 env:
-  AccessKeyID: ""
-  SecretAccessKey: ""
   OBS_SERVER: "https://obs.cn-north-4.myhuaweicloud.com"
   IAM_ENDPOINT: ""
   OC_ENDPOINT: ""
   DOMAIN_NAME: ""
+
+# 敏感信息配置（注意：这些值应该在实际部署时通过--set参数或secrets文件提供）
+# 不要在版本控制系统中存储真实的敏感信息
+secret:
+  AccessKeyID: ""
+  SecretAccessKey: ""
   USERNAME: ""
   PASSWORD: ""

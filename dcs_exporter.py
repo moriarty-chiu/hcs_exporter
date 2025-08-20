@@ -3,7 +3,11 @@ import logging
 import json
 import requests
 import yaml
+import urllib3
 from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
+
+# 禁用InsecureRequestWarning警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

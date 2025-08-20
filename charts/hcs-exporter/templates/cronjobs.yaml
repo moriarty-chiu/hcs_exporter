@@ -1,0 +1,76 @@
+{{- if .Values.cronjobs }}
+{{- range $key, $cronjob := .Values.cronjobs }}
+{{- if $cronjob.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $.Release.Name }}-{{ $key }}
+  labels:
+    app.kubernetes.io/name: {{ $.Release.Name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    exporter-type: {{ $key }}
+spec:
+  schedule: {{ $cronjob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ $.Chart.Name }}-{{ $key }}
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              {{- if eq $key "obs" }}
+              command:
+                - "python"
+                - "entrypoint.py"
+                - "obs"
+              {{- else if eq $key "dcs" }}
+              command:
+                - "python"
+                - "entrypoint.py"
+                - "dcs"
+              {{- end }}
+              env:
+                {{- if eq $key "obs" }}
+                - name: AccessKeyID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Release.Name }}-secret
+                      key: AccessKeyID
+                - name: SecretAccessKey
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Release.Name }}-secret
+                      key: SecretAccessKey
+                - name: OBS_SERVER
+                  value: {{ $.Values.env.OBS_SERVER | quote }}
+                {{- else if eq $key "dcs" }}
+                - name: USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Release.Name }}-secret
+                      key: USERNAME
+                - name: PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Release.Name }}-secret
+                      key: PASSWORD
+                - name: IAM_ENDPOINT
+                  value: {{ $.Values.env.IAM_ENDPOINT | quote }}
+                - name: OC_ENDPOINT
+                  value: {{ $.Values.env.OC_ENDPOINT | quote }}
+                - name: DOMAIN_NAME
+                  value: {{ $.Values.env.DOMAIN_NAME | quote }}
+                {{- end }}
+              volumeMounts:
+                - name: config
+                  mountPath: /app/conf
+          volumes:
+            - name: config
+              configMap:
+                name: {{ $.Release.Name }}-config
+          restartPolicy: OnFailure
+{{- end }}
+{{- end }}
+{{- end }}
